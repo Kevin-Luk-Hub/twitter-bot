@@ -8,7 +8,8 @@ import time
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth, wait_on_rate_limit=True)
+api = tweepy.API(auth)
+# api = tweepy.API(auth, wait_on_rate_limit=True)
 
 
 def reply_to_tweets():
@@ -23,12 +24,20 @@ def reply_to_tweets():
             api.create_friendship(mention.user.id)
             api.create_favorite(last_tweet)
             api.retweet(last_tweet)
-            api.update_status(
-                '@{} Happy {}!'.format(mention.user.name, get_weekday()), mention.id)
+            media = []
+            res = api.media_upload('./state_graphs/Florida_overall.png')
+            media.append(res.media_id)
+            if 'hi' in mention.full_text.lower():
+                api.update_status('hi', in_reply_to_status_id=last_tweet,
+                                  media_ids=media)
             print('Successfully replied to tweet')
     except tweepy.TweepError as e:
         print(e)
         print('Unable to reply to tweet')
+
+
+def reply_with_news():
+    pass
 
 
 def reply_to_message():
@@ -38,10 +47,14 @@ def reply_to_message():
 
     try:
         for message in all_messages:
+            print('Message found...')
             recent_message = message.id
             store_last_message_id(recent_message, FILE_NAME_MESSAGE)
-            if message_create['sender_id'] == recent_message:
-                return
+            print(message.message_create['target']['recipient_id'])
+            print(recent_message)
+            if message.message_create['target']['recipient_id'] == recent_message:
+                print('In if statement')
+                pass
             else:
                 api.send_direct_message(
                     message.message_create['sender_id'], 'Hello! I am a bot that was created by @KhovinL. Please contact him with any questions!')
@@ -51,7 +64,9 @@ def reply_to_message():
         print('Unable to reply to message')
 
 
-while True:
-    Thread(target=reply_to_message()).start()
-    Thread(target=reply_to_tweets()).start()
-    time.sleep(5)
+# while True:
+#     # Thread(target=reply_to_message()).start()
+#     # Thread(target=reply_to_tweets()).start()
+#     # reply_to_message()
+#     reply_to_tweets()
+#     time.sleep(8)
