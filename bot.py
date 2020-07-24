@@ -4,12 +4,27 @@ from utils import get_weekday
 from manage_id import FILE_NAME, FILE_NAME_MESSAGE, store_last_seen_id, retrieve_last_seen_id, store_last_message_id, retrieve_last_message_id
 from threading import Thread
 import time
+import random
 
 
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth)
-# api = tweepy.API(auth, wait_on_rate_limit=True)
+class TwitterAuthenticator():
+    def authenticate_user():
+        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+        auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+        api = tweepy.API(auth, wait_on_rate_limit=True)
+        return api
+
+
+class MyStreamListener(tweepy.StreamListener):
+    def on_status(self, status):
+        print(status)
+
+    def on_error(self, status_code):
+        if status_code == 420:
+            return False
+
+
+api = TwitterAuthenticator.authenticate_user()
 
 
 def reply_to_tweets():
@@ -27,9 +42,8 @@ def reply_to_tweets():
             media = []
             res = api.media_upload('./state_graphs/Florida_overall.png')
             media.append(res.media_id)
-            if 'hi' in mention.full_text.lower():
-                api.update_status('hi', in_reply_to_status_id=last_tweet,
-                                  media_ids=media)
+            api.update_status('@{} {}'.format(mention.user.name, random.randint(0, 1000)),
+                              in_reply_to_status_id=last_tweet, media_ids=media)
             print('Successfully replied to tweet')
     except tweepy.TweepError as e:
         print(e)
@@ -70,3 +84,11 @@ def reply_to_message():
 #     # reply_to_message()
 #     reply_to_tweets()
 #     time.sleep(8)
+
+if __name__ == "__main__":
+    listener = MyStreamListener()
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    stream = tweepy.Stream(auth, listener)
+
+    stream.filter(follow=['1284480293416644609'])
