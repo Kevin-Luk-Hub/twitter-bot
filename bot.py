@@ -1,94 +1,65 @@
 import tweepy
-from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
-from utils import get_weekday
-from manage_id import FILE_NAME, FILE_NAME_MESSAGE, store_last_seen_id, retrieve_last_seen_id, store_last_message_id, retrieve_last_message_id
-from threading import Thread
-import time
-import random
+from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
+import json
 
 
-class TwitterAuthenticator():
-    def authenticate_user():
-        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-        auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-        api = tweepy.API(auth, wait_on_rate_limit=True)
-        return api
-
-
-class MyStreamListener(tweepy.StreamListener):
-    def on_status(self, status):
-        print(status)
+class StdOutListener(tweepy.StreamListener):
+    def on_status(self, data):
+        tweet_id, tweet_text, tweet_author, tweet_author_id = getTweetData(
+            data)
+        responseTweet(tweet_text, tweet_author, tweet_id)
 
     def on_error(self, status_code):
         if status_code == 420:
             return False
 
 
-api = TwitterAuthenticator.authenticate_user()
-
-
-def reply_to_tweets():
-    print('Searching for tweets...')
-    last_seen_id = retrieve_last_seen_id(FILE_NAME)
-    mention_tweets = api.mentions_timeline(last_seen_id, tweet_mode='extended')
-
-    try:
-        for mention in reversed(mention_tweets):
-            last_tweet = mention.id
-            store_last_seen_id(last_tweet, FILE_NAME)
-            api.create_friendship(mention.user.id)
-            api.create_favorite(last_tweet)
-            api.retweet(last_tweet)
-            media = []
-            res = api.media_upload('./state_graphs/Florida_overall.png')
-            media.append(res.media_id)
-            api.update_status('@{} {}'.format(mention.user.name, random.randint(0, 1000)),
-                              in_reply_to_status_id=last_tweet, media_ids=media)
-            print('Successfully replied to tweet')
-    except tweepy.TweepError as e:
-        print(e)
-        print('Unable to reply to tweet')
-
-
-def reply_with_news():
-    pass
-
-
-def reply_to_message():
-    print('Replying to DMs...')
-    last_seen_id = retrieve_last_message_id(FILE_NAME_MESSAGE)
-    all_messages = api.list_direct_messages()
-
-    try:
-        for message in all_messages:
-            print('Message found...')
-            recent_message = message.id
-            store_last_message_id(recent_message, FILE_NAME_MESSAGE)
-            print(message.message_create['target']['recipient_id'])
-            print(recent_message)
-            if message.message_create['target']['recipient_id'] == recent_message:
-                print('In if statement')
-                pass
-            else:
-                api.send_direct_message(
-                    message.message_create['sender_id'], 'Hello! I am a bot that was created by @KhovinL. Please contact him with any questions!')
-                print('Successfully replied to message')
-    except tweepy.TweepError as e:
-        print(e)
-        print('Unable to reply to message')
-
-
-# while True:
-#     # Thread(target=reply_to_message()).start()
-#     # Thread(target=reply_to_tweets()).start()
-#     # reply_to_message()
-#     reply_to_tweets()
-#     time.sleep(8)
-
-if __name__ == "__main__":
-    listener = MyStreamListener()
+def authenticate_user():
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-    stream = tweepy.Stream(auth, listener)
+    api = tweepy.API(auth, wait_on_rate_limit=True)
+    return api, auth
 
-    stream.filter(follow=['1284480293416644609'])
+
+def get_stream():
+    api, auth = authenticate_user()
+    listener = StdOutListener()
+
+    stream = tweepy.Stream(auth, listener)
+    stream.filter(follow=[ACCOUNT_ID], track=[ACCOUNT_NAME])
+
+
+def responseTweet(tweet_text, tweet_author, tweet_id):
+    if tweet_author.lower() != ACCOUNT_NAME.lower():
+        if 'symptoms' in tweet_text.lower() or 'symptom' in tweet_text.lower():
+            tweet = 'The symptoms of COVID-19 include fever or chills, cough, and sore throat. These symptoms may appear 2-14 days after exposure to the virus. Visit https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html to see a complete list of symptoms that you should be aware of.'
+            postTweet(tweet, tweet_id)
+        elif 'testing' in tweet_text.lower() or 'test' in tweet_text.lower() or 'tested' in tweet_text.lower():
+            tweet = 'If you are experiencing any of the symptoms that are associated with COVID-19, stay away from others and monitor your health for the next 14 days. To learn more about getting tested, visit https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/quarantine.html.'
+            postTweet(tweet, tweet_id)
+        elif 'protect' in tweet_text.lower() or 'safe' in tweet_text.lower():
+            tweet = 'Some ways to protect yourself and others from contracting or spreading the virus are following #CDC guidelines, #SocialDistancing , wearing a mask, and washing your hands often. Read about more ways to prevent the spread of the virus at https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html.'
+            postTweet(tweet, tweet_id)
+        elif 'what is covid-19' in tweet_text.lower() or 'what is coronavirus' in tweet_text.lower():
+            tweet = 'A novel coronavirus is a new coronavirus that has not been previously identified. The virus causing #COVID19, is not the same as the coronaviruses that commonly circulate among humans and cause mild illness. Learn more about coronaviruses at https://www.cdc.gov/coronavirus/2019-ncov/faq.html.'
+            postTweet(tweet, tweet_id)
+
+
+def postTweet(tweet_text, tweet_id):
+    api, auth = authenticate_user()
+    api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id,
+                      auto_populate_reply_metadata=True)
+    print('replied to tweet')
+
+
+def getTweetData(tweet):
+    tweet_id = tweet.id_str
+    tweet_text = tweet.text
+    tweet_author = tweet.user.screen_name
+    tweet_author_id = tweet.user.id
+
+    return tweet_id, tweet_text, tweet_author, tweet_author_id
+
+
+if __name__ == "__main__":
+    get_stream()
