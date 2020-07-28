@@ -6,14 +6,6 @@ from utils import get_previous_dates
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 
-
-class State:
-    def __init__(self, state_name, positive_cases, positive_increase, death, death_increase):
-        self.state_name = state_name
-        self.positive_cases = positive_cases
-        self.positive_increase = positive_increase
-        self.death = death
-        self.death_increase = death_increase
 # url = "https://covid-19-statistics.p.rapidapi.com/reports/total"
 
 # querystring = {"date": "2020-07-18"}

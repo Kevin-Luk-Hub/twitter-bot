@@ -1,32 +1,54 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
 import json
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, KEY_WORDS
+from logger import *
+
+
+class TwitterAuthentication():
+    def authenticate_user(self):
+        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+        auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+        api = tweepy.API(auth, wait_on_rate_limit=True)
+        return api, auth
 
 
 class StdOutListener(tweepy.StreamListener):
     def on_status(self, data):
         tweet_id, tweet_text, tweet_author, tweet_author_id = getTweetData(
             data)
-        responseTweet(tweet_text, tweet_author, tweet_id)
+
+        if tweet_author.lower() != ACCOUNT_NAME.lower():
+            logging.info('Tweet ID: {}'.format(tweet_id))
+            logging.info('Tweet author: @{}'.format(tweet_author))
+            logging.info('Tweet author ID: {}'.format(tweet_author_id))
+            logging.info('Tweet text: {}'.format(tweet_text))
+
+            analyzeTweet(tweet_text, tweet_author, tweet_id)
 
     def on_error(self, status_code):
         if status_code == 420:
+            logging.info('420 ERROR: STOPPED STREAM')
             return False
 
 
-def authenticate_user():
-    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth, wait_on_rate_limit=True)
-    return api, auth
-
-
-def get_stream():
-    api, auth = authenticate_user()
+def followTwitterStream():
+    api, auth = TwitterAuthentication().authenticate_user()
     listener = StdOutListener()
-
     stream = tweepy.Stream(auth, listener)
     stream.filter(follow=[ACCOUNT_ID], track=[ACCOUNT_NAME])
+
+
+def analyzeTweet(tweet_text, tweet_author, tweet_id):
+    tweet = tweetLower(tweet_text)
+
+    if any(word in tweet for word in KEY_WORDS and STATE_NAME_LOWER):
+        for word in tweet:
+            for state in STATE_NAME_LOWER:
+                if(word == state):
+                    print(state)
+    else:
+        responseTweet(tweet_text, tweet_author, tweet_id)
 
 
 def responseTweet(tweet_text, tweet_author, tweet_id):
@@ -46,10 +68,22 @@ def responseTweet(tweet_text, tweet_author, tweet_id):
 
 
 def postTweet(tweet_text, tweet_id):
-    api, auth = authenticate_user()
+    api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id,
                       auto_populate_reply_metadata=True)
-    print('replied to tweet')
+    logging.info('Replied to tweet: {}'.format(tweet_id))
+
+
+def tweetLower(tweet_text):
+    lower = []
+    for word in tweet_text.split():
+        lower.append(word.lower())
+    return lower
+
+
+def publishTweet(tweet):
+    api, auth = TwitterAuthentication().authenticate_user()
+    api.update_status(status=tweet)
 
 
 def getTweetData(tweet):
@@ -62,4 +96,8 @@ def getTweetData(tweet):
 
 
 if __name__ == "__main__":
-    get_stream()
+    try:
+        logging.info('Started Twitter stream')
+        followTwitterStream()
+    except:
+        logging.info('Stream stopped')

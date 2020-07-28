@@ -8,7 +8,7 @@ Check out the bot at https://twitter.com/kevDeveloperBot
 
 All data was collected from the Data API by The COVID Tracking Project
 
-Findthe data at https://covidtracking.com/data/api
+Find the data at https://covidtracking.com/data/api
 
 ## Dependencies
 
