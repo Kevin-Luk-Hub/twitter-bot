@@ -1,28 +1,32 @@
 import pandas as pd
 import numpy as np
 import matplotlib
-import requests
-from utils import get_previous_dates
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
-
-# url = "https://covid-19-statistics.p.rapidapi.com/reports/total"
-
-# querystring = {"date": "2020-07-18"}
-
-# headers = {
-#     'x-rapidapi-host': "covid-19-statistics.p.rapidapi.com",
-#     'x-rapidapi-key': "fe50ef6954msh39d259c6247a27bp1b8b89jsndf4254f2ec79"
-# }
-
-# response = requests.request("GET", url, headers=headers, params=querystring)
-
-# print(response.text)
+import matplotlib.dates as mdates
+from datetime import date, datetime, timedelta
+from logger import *
 
 
-def get_dataframe(state):
+def get_previous_dates():
+    start_date = date.today() - timedelta(days=1)
+    end_date = date(2020, 4, 13)
+    delta = start_date - end_date
+    dates = []
+
+    for i in range(delta.days + 1):
+        day = start_date - timedelta(days=i)
+        dates.append(day.strftime('%m-%d-%Y'))
+
+    return dates
+
+
+def getCovidData(state):
     raw_files = []
-    dates = get_previous_dates(30)
+    dates = get_previous_dates()
+
+    logging.info('Retrieving data from GitHub for the state of {}'.format(
+        state.capitalize()))
 
     for i in range(0, len(dates)):
         raw_files.append(
@@ -37,45 +41,50 @@ def get_dataframe(state):
     filt = df['Province_State'] != state
     df.drop(index=df[filt].index, inplace=True)
     df.sort_values(by='Last_Update', ascending=True, inplace=True)
-    df['Last_Update'] = df['Last_Update'].apply(lambda date: date[5:10])
+    df['Last_Update'] = df['Last_Update'].apply(lambda date: date[0:10])
+    df['Last_Update'] = pd.to_datetime(df['Last_Update'], format='%Y-%m-%d')
+    df = df.set_index("Last_Update")
+
+    logging.info('Finished getting data from GitHub')
 
     return df
 
 
 def create_graph(dataframe, state):
-    x_dates = dataframe['Last_Update']
-
-    x_indexes = np.arange(len(x_dates))
-
     confirmed_y = dataframe['Confirmed']
     plt.style.use('bmh')
 
-    plt.plot(x_indexes, confirmed_y,
-             color='#008fd5', label='Confirmed')
+    plt.plot(confirmed_y, color='#008fd5', label='Confirmed')
 
     recovered_y = dataframe['Recovered']
-    plt.plot(x_indexes, recovered_y,
-             color='#e5ae38', label='Recovered')
+    plt.plot(recovered_y, color='#e5ae38', label='Recovered')
 
     dead_y = dataframe['Deaths']
-    plt.plot(x_indexes, dead_y,
-             color='#c70d00', label='Deaths')
+    plt.plot(dead_y, color='#c70d00', label='Deaths')
 
-    plt.xlabel('Date')
+    plt.xlabel('Period')
     plt.ylabel('Total Cases')
-    plt.title('COVID-19 Case Breakdown for the State of {}'.format(state))
+    plt.title('COVID-19 Case Breakdown for the State of __')
 
     plt.legend()
     plt.tight_layout()
-    plt.xticks(rotation=45, ticks=x_indexes, labels=x_dates)
+    plt.xticks(rotation=45)
     plt.tick_params(axis='x', which='major', labelsize=8)
     plt.tick_params(axis='y', which='major', labelsize=8)
     plt.subplots_adjust(bottom=0.12)
 
-    FOLDER_NAME = './state_graphs'
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
 
-    plt.savefig(FOLDER_NAME + "/{}_overall.png".format(state))
+    plt.savefig("{}_overall.png".format(state))
 
 
-create_graph(get_dataframe('West Virginia'), 'West Virginia')
-plt.show()
+def create_tweet(dataframe, state):
+    confirmed = "{:,}".format(dataframe.iloc[-1]['Confirmed'])
+    deaths = "{:,}".format(dataframe.iloc[-1]['Deaths'])
+    recovered = "{:,}".format(int(dataframe.iloc[-1]['Recovered']))
+
+    tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. {} people have recovered from the virus.'.format(
+        state, confirmed, deaths, recovered)
+
+    return tweet

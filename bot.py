@@ -1,7 +1,7 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-import json
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, KEY_WORDS
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS
+from covid_data import getCovidData, create_graph, create_tweet
 from logger import *
 
 
@@ -39,19 +39,42 @@ def followTwitterStream():
     stream.filter(follow=[ACCOUNT_ID], track=[ACCOUNT_NAME])
 
 
+def getTweetData(tweet):
+    tweet_id = tweet.id_str
+    tweet_text = tweet.text
+    tweet_author = tweet.user.screen_name
+    tweet_author_id = tweet.user.id
+
+    return tweet_id, tweet_text, tweet_author, tweet_author_id
+
+
 def analyzeTweet(tweet_text, tweet_author, tweet_id):
-    tweet = tweetLower(tweet_text)
+    tweet_lower = []
+    for word in tweet_text.split():
+        tweet_lower.append(word.lower())
 
     if any(word in tweet for word in KEY_WORDS and STATE_NAME_LOWER):
         for word in tweet:
             for state in STATE_NAME_LOWER:
                 if(word == state):
-                    print(state)
+                    stateTweet(state)
+
     else:
-        responseTweet(tweet_text, tweet_author, tweet_id)
+        genericTweet(tweet_text, tweet_author, tweet_id)
 
 
-def responseTweet(tweet_text, tweet_author, tweet_id):
+def stateTweet(state):
+    df = getCovidData(state.capitalize())
+    create_graph(df, state.capitalize())
+    tweet = create_tweet(df, state.capitalize())
+
+
+def media_id(image_file):
+
+    return media_id
+
+
+def genericTweet(tweet_text, tweet_author, tweet_id):
     if tweet_author.lower() != ACCOUNT_NAME.lower():
         if 'symptoms' in tweet_text.lower() or 'symptom' in tweet_text.lower():
             tweet = 'The symptoms of COVID-19 include fever or chills, cough, and sore throat. These symptoms may appear 2-14 days after exposure to the virus. Visit https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html to see a complete list of symptoms that you should be aware of.'
@@ -74,25 +97,9 @@ def postTweet(tweet_text, tweet_id):
     logging.info('Replied to tweet: {}'.format(tweet_id))
 
 
-def tweetLower(tweet_text):
-    lower = []
-    for word in tweet_text.split():
-        lower.append(word.lower())
-    return lower
-
-
 def publishTweet(tweet):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet)
-
-
-def getTweetData(tweet):
-    tweet_id = tweet.id_str
-    tweet_text = tweet.text
-    tweet_author = tweet.user.screen_name
-    tweet_author_id = tweet.user.id
-
-    return tweet_id, tweet_text, tweet_author, tweet_author_id
 
 
 if __name__ == "__main__":
