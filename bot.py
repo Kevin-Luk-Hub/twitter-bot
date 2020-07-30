@@ -120,27 +120,27 @@ def retweetNews():
     NY_tweets = api.user_timeline(NEW_YORK_TIMES_ID)
 
     for tweet in CNN_tweets:
-        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+        if 'covid-19' in tweet.text.lower() or 'covid19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
             api.create_favorite(tweet.id)
             api.retweet(tweet.id)
 
     for tweet in CDC_tweets:
-        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+        if 'covid-19' in tweet.text.lower() or 'covid19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
             api.create_favorite(tweet.id)
             api.retweet(tweet.id)
 
     for tweet in WHO_tweets:
-        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+        if 'covid-19' in tweet.text.lower() or 'covid19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
             api.create_favorite(tweet.id)
             api.retweet(tweet.id)
 
     for tweet in WP_tweets:
-        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+        if 'covid-19' in tweet.text.lower() or 'covid19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
             api.create_favorite(tweet.id)
             api.retweet(tweet.id)
 
     for tweet in WS_tweets:
-        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+        if 'covid-19' in tweet.text.lower() or 'covid19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
             api.create_favorite(tweet.id)
             api.retweet(tweet.id)
 
