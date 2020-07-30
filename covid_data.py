@@ -47,6 +47,8 @@ def getCovidData(state):
 
     logging.info('Finished getting data from GitHub')
 
+    print('got data')
+
     return df
 
 
@@ -62,13 +64,12 @@ def create_graph(dataframe, state):
     dead_y = dataframe['Deaths']
     plt.plot(dead_y, color='#c70d00', label='Deaths')
 
-    plt.xlabel('Period')
-    plt.ylabel('Total Cases')
-    plt.title('COVID-19 Case Breakdown for the State of __')
+    plt.xlabel('Period', labelpad=10)
+    plt.ylabel('Number of Cases', labelpad=10)
+    plt.title('COVID-19 Case Breakdown for the State of {}'.format(state))
 
     plt.legend()
     plt.tight_layout()
-    plt.xticks(rotation=45)
     plt.tick_params(axis='x', which='major', labelsize=8)
     plt.tick_params(axis='y', which='major', labelsize=8)
     plt.subplots_adjust(bottom=0.12)
@@ -76,15 +77,25 @@ def create_graph(dataframe, state):
     plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
 
-    plt.savefig("{}_overall.png".format(state))
+    plt.savefig("{}.png".format(state))
+
+    print('created graph')
 
 
 def create_tweet(dataframe, state):
     confirmed = "{:,}".format(dataframe.iloc[-1]['Confirmed'])
     deaths = "{:,}".format(dataframe.iloc[-1]['Deaths'])
+
+    # if(dataframe.iloc[-1]['Recovered'] == 'NaN'):
+    #     print('hi')
+    # else:
+    #     print('bye')
+
     recovered = "{:,}".format(int(dataframe.iloc[-1]['Recovered']))
 
     tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. {} people have recovered from the virus.'.format(
         state, confirmed, deaths, recovered)
+
+    print('tweet')
 
     return tweet

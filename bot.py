@@ -3,6 +3,7 @@ from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKE
 from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS
 from covid_data import getCovidData, create_graph, create_tweet
 from logger import *
+import os
 
 
 class TwitterAuthentication():
@@ -53,25 +54,36 @@ def analyzeTweet(tweet_text, tweet_author, tweet_id):
     for word in tweet_text.split():
         tweet_lower.append(word.lower())
 
-    if any(word in tweet for word in KEY_WORDS and STATE_NAME_LOWER):
-        for word in tweet:
-            for state in STATE_NAME_LOWER:
-                if(word == state):
-                    stateTweet(state)
+    tweet_lower.pop(0)
+    new_string = ' '.join(tweet_lower)
 
-    else:
-        genericTweet(tweet_text, tweet_author, tweet_id)
-
-
-def stateTweet(state):
-    df = getCovidData(state.capitalize())
-    create_graph(df, state.capitalize())
-    tweet = create_tweet(df, state.capitalize())
+    if any(word in new_string for word in KEY_WORDS and STATE_NAME_LOWER):
+        for state in STATE_NAME_LOWER:
+            if state in new_string:
+                stateTweet(state.title(), tweet_id)
+            else:
+                genericTweet(tweet_text, tweet_author, tweet_id)
 
 
-def media_id(image_file):
+def stateTweet(state, tweet_id):
+    api, auth = TwitterAuthentication().authenticate_user()
+    df = getCovidData(state)
+    create_graph(df, state)
+    tweet = create_tweet(df, state)
+    img_id = media_id(state)
 
-    return media_id
+    postTweetwithMedia(tweet, tweet_id, img_id)
+
+
+def media_id(state):
+    api, auth = TwitterAuthentication().authenticate_user()
+    media = []
+
+    res = api.media_upload('{}.png'.format(state))
+    media.append(res.media_id)
+    os.remove('{}.png'.format(state))
+
+    return media
 
 
 def genericTweet(tweet_text, tweet_author, tweet_id):
@@ -97,14 +109,17 @@ def postTweet(tweet_text, tweet_id):
     logging.info('Replied to tweet: {}'.format(tweet_id))
 
 
+def postTweetwithMedia(tweet_text, tweet_id, media):
+    api, auth = TwitterAuthentication().authenticate_user()
+    api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id, media_ids=media,
+                      auto_populate_reply_metadata=True)
+    logging.info('Replied to tweet: {}'.format(tweet_id))
+
+
 def publishTweet(tweet):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet)
 
 
 if __name__ == "__main__":
-    try:
-        logging.info('Started Twitter stream')
-        followTwitterStream()
-    except:
-        logging.info('Stream stopped')
+    followTwitterStream()
