@@ -66,7 +66,11 @@ def create_graph(dataframe, state):
 
     plt.xlabel('Period', labelpad=10)
     plt.ylabel('Number of Cases', labelpad=10)
-    plt.title('COVID-19 Case Breakdown for the State of {}'.format(state))
+
+    if state == "District of Columbia":
+        plt.title('COVID-19 Case Breakdown for the District of Columbia')
+    else:
+        plt.title('COVID-19 Case Breakdown for the State of {}'.format(state))
 
     plt.legend()
     plt.tight_layout()
@@ -93,7 +97,7 @@ def create_tweet(dataframe, state):
 
     recovered = "{:,}".format(int(dataframe.iloc[-1]['Recovered']))
 
-    tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. {} people have recovered from the virus.'.format(
+    tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. Additionally, {} people have recovered from the virus.'.format(
         state, confirmed, deaths, recovered)
 
     print('tweet')

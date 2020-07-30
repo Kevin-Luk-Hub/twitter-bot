@@ -66,3 +66,9 @@ STATE_NAME_ABBREV = {
 
 KEY_WORDS = ["what", "how", "corona", "coronavirus", "covid", "covid-19", "state", "data",
              "stats", "statistics", "case", "cases", "breakdown"]
+
+CNN = 'CNN'
+CNN_ID = '759251'
+
+CDC = 'CDC'
+CDC_ID = '146569971'

@@ -1,6 +1,6 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID
 from covid_data import getCovidData, create_graph, create_tweet
 from logger import *
 import os
@@ -61,8 +61,12 @@ def analyzeTweet(tweet_text, tweet_author, tweet_id):
         for state in STATE_NAME_LOWER:
             if state in new_string:
                 stateTweet(state.title(), tweet_id)
-            else:
-                genericTweet(tweet_text, tweet_author, tweet_id)
+    elif any(word in tweet_text for word in KEY_WORDS and STATE_ABBREV):
+        for state in STATE_ABBREV:
+            if state in tweet_text:
+                stateTweet(STATE_NAME_ABBREV.get(state), tweet_id)
+    else:
+        genericTweet(tweet_text, tweet_author, tweet_id)
 
 
 def stateTweet(state, tweet_id):
@@ -100,6 +104,9 @@ def genericTweet(tweet_text, tweet_author, tweet_id):
         elif 'what is covid-19' in tweet_text.lower() or 'what is coronavirus' in tweet_text.lower():
             tweet = 'A novel coronavirus is a new coronavirus that has not been previously identified. The virus causing #COVID19, is not the same as the coronaviruses that commonly circulate among humans and cause mild illness. Learn more about coronaviruses at https://www.cdc.gov/coronavirus/2019-ncov/faq.html.'
             postTweet(tweet, tweet_id)
+        else:
+            logging.info('Unable to understand: {} from {}'.format(
+                tweet_text, tweet_author))
 
 
 def postTweet(tweet_text, tweet_id):
