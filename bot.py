@@ -1,6 +1,6 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
 from covid_data import getCovidData, create_graph, create_tweet
 from logger import *
 import os
@@ -37,7 +37,7 @@ def followTwitterStream():
     api, auth = TwitterAuthentication().authenticate_user()
     listener = StdOutListener()
     stream = tweepy.Stream(auth, listener)
-    stream.filter(follow=[ACCOUNT_ID], track=[ACCOUNT_NAME])
+    stream.filter(follow=[ACCOUNT_ID])
 
 
 def getTweetData(tweet):
@@ -109,6 +109,47 @@ def genericTweet(tweet_text, tweet_author, tweet_id):
                 tweet_text, tweet_author))
 
 
+def retweetNews():
+    api, auth = TwitterAuthentication().authenticate_user()
+
+    CNN_tweets = api.user_timeline(CNN_ID)
+    CDC_tweets = api.user_timeline(CDC_ID)
+    WHO_tweets = api.user_timeline(WHO_ID)
+    WP_tweets = api.user_timeline(WASHINGTON_POST_ID)
+    WS_tweets = api.user_timeline(WALL_STREET_JOURNAL_ID)
+    NY_tweets = api.user_timeline(NEW_YORK_TIMES_ID)
+
+    for tweet in CNN_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+    for tweet in CDC_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+    for tweet in WHO_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+    for tweet in WP_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+    for tweet in WS_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+    for tweet in NY_tweets:
+        if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+            api.create_favorite(tweet.id)
+            api.retweet(tweet.id)
+
+
 def postTweet(tweet_text, tweet_id):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id,
@@ -120,7 +161,7 @@ def postTweetwithMedia(tweet_text, tweet_id, media):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id, media_ids=media,
                       auto_populate_reply_metadata=True)
-    logging.info('Replied to tweet: {}'.format(tweet_id))
+    logging.info('Replied to tweet: {}, {}'.format(tweet_text, tweet_id))
 
 
 def publishTweet(tweet):
@@ -130,3 +171,12 @@ def publishTweet(tweet):
 
 if __name__ == "__main__":
     followTwitterStream()
+
+# api, auth = TwitterAuthentication().authenticate_user()
+
+# CNN_tweets = api.user_timeline(CNN_ID)
+
+# for tweet in CNN_tweets:
+#     if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
+#         api.create_favorite(tweet.id)
+#         api.retweet(tweet.id)

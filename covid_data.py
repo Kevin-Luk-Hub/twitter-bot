@@ -40,14 +40,13 @@ def getCovidData(state):
 
     filt = df['Province_State'] != state
     df.drop(index=df[filt].index, inplace=True)
+    df['Recovered'].replace(0.0, np.nan, inplace=True)
     df.sort_values(by='Last_Update', ascending=True, inplace=True)
     df['Last_Update'] = df['Last_Update'].apply(lambda date: date[0:10])
     df['Last_Update'] = pd.to_datetime(df['Last_Update'], format='%Y-%m-%d')
     df = df.set_index("Last_Update")
 
     logging.info('Finished getting data from GitHub')
-
-    print('got data')
 
     return df
 
@@ -58,8 +57,9 @@ def create_graph(dataframe, state):
 
     plt.plot(confirmed_y, color='#008fd5', label='Confirmed')
 
-    recovered_y = dataframe['Recovered']
-    plt.plot(recovered_y, color='#e5ae38', label='Recovered')
+    if not(dataframe['Recovered'].isnull().all()):
+        recovered_y = dataframe['Recovered']
+        plt.plot(recovered_y, color='#e5ae38', label='Recovered')
 
     dead_y = dataframe['Deaths']
     plt.plot(dead_y, color='#c70d00', label='Deaths')
@@ -82,24 +82,29 @@ def create_graph(dataframe, state):
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
 
     plt.savefig("{}.png".format(state))
+    plt.close()
 
-    print('created graph')
+    logging.info('Created graph for {}'.format(state))
 
 
 def create_tweet(dataframe, state):
     confirmed = "{:,}".format(dataframe.iloc[-1]['Confirmed'])
     deaths = "{:,}".format(dataframe.iloc[-1]['Deaths'])
 
-    # if(dataframe.iloc[-1]['Recovered'] == 'NaN'):
-    #     print('hi')
-    # else:
-    #     print('bye')
+    try:
+        recovered = "{:,}".format(int(dataframe.iloc[-1]['Recovered']))
+        recovered_tweet = 'Additionally, {} people have recovered from the virus.'.format(
+            recovered)
+    except:
+        recovered_tweet = 'I cannot report on the number of people that have recovered from the virus because I do not have the data.'
 
-    recovered = "{:,}".format(int(dataframe.iloc[-1]['Recovered']))
+    if(state == 'District of Columbia'):
+        tweet = 'Since April 13, 2020, the {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. {}'.format(
+            state, confirmed, deaths, recovered_tweet)
+    else:
+        tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. {}'.format(
+            state, confirmed, deaths, recovered_tweet)
 
-    tweet = 'Since April 13, 2020, the state of {} has had {} confirmed cases of COVID-19 and {} deaths caused by COVID-19. Additionally, {} people have recovered from the virus.'.format(
-        state, confirmed, deaths, recovered)
-
-    print('tweet')
+    logging.info('Created tweet for {}'.format(state))
 
     return tweet
