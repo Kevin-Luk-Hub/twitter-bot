@@ -64,7 +64,7 @@ STATE_NAME_ABBREV = {
     "WY": "Wyoming"
 }
 
-KEY_WORDS = ["what", "how", "corona", "coronavirus", "covid", "covid-19", "state", "data",
+KEY_WORDS = ["what", "how", "corona", "coronavirus", "covid", "covid-19", "pandemic", "state", "data",
              "stats", "statistics", "case", "cases", "breakdown"]
 
 CNN = 'CNN'
