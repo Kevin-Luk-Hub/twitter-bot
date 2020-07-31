@@ -6,9 +6,9 @@ Check out the bot at https://twitter.com/kevDeveloperBot
 
 ## Data
 
-All data was collected from the Data API by The COVID Tracking Project
+All data was collected from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University
 
-Find the data at https://covidtracking.com/data/api
+Find the data at https://github.com/CSSEGISandData/COVID-19
 
 ## Dependencies
 
