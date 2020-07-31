@@ -1,9 +1,12 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
 from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
-from covid_data import getCovidData, create_graph, create_tweet
+from covid_data import getCovidData, create_graph, create_tweet, getUSData
 from logger import *
+import schedule
+import time
 import os
+from threading import Thread
 
 
 class TwitterAuthentication():
@@ -150,6 +153,13 @@ def retweetNews():
             api.retweet(tweet.id)
 
 
+def dailyUpdate():
+    tweet = getUSData()
+    publishUpdate(tweet)
+
+    schedule.every().day.at("07:00").do(dailyUpdate)
+
+
 def postTweet(tweet_text, tweet_id):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet_text, in_reply_to_status_id=tweet_id,
@@ -164,19 +174,17 @@ def postTweetwithMedia(tweet_text, tweet_id, media):
     logging.info('Replied to tweet: {}, {}'.format(tweet_text, tweet_id))
 
 
-def publishTweet(tweet):
+def publishUpdate(tweet):
     api, auth = TwitterAuthentication().authenticate_user()
     api.update_status(status=tweet)
 
 
+def publishUpdateHelp():
+    schedule.every().day.at("08:40").do(publishUpdate)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 if __name__ == "__main__":
     followTwitterStream()
-
-# api, auth = TwitterAuthentication().authenticate_user()
-
-# CNN_tweets = api.user_timeline(CNN_ID)
-
-# for tweet in CNN_tweets:
-#     if 'covid-19' in tweet.text.lower() or 'coronavirus' in tweet.text.lower():
-#         api.create_favorite(tweet.id)
-#         api.retweet(tweet.id)

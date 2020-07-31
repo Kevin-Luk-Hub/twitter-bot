@@ -17,6 +17,14 @@ pip install tweepy
 ```
 
 ```
+pip install bs4
+```
+
+```
+pip install schedule
+```
+
+```
 pip install matplotlib
 ```
 

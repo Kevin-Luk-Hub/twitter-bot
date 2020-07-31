@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-import matplotlib
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import figure
 import matplotlib.dates as mdates
 from datetime import date, datetime, timedelta
 from logger import *
+from bs4 import BeautifulSoup
+import requests
 
 
 def get_previous_dates():
@@ -51,6 +51,26 @@ def getCovidData(state):
     return df
 
 
+def getUSData():
+    try:
+        response = requests.get(
+            'https://www.cdc.ov/coronavirus/2019-ncov/cases-updates/cases-in-us.html')
+    except:
+        logging.error('Cannot retrieve overall COVID-19 data for US')
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    us_data = soup.find_all(class_='count')
+
+    total_cases = us_data[0].text
+    total_death = us_data[1].text
+
+    tweet = 'As of today, the US has had {} total cases of COVID-19 and {} deaths caused by the virus. Please stay safe! #COVID19'.format(
+        total_cases, total_death)
+
+    return tweet
+
+
 def create_graph(dataframe, state):
     confirmed_y = dataframe['Confirmed']
     plt.style.use('bmh')
@@ -64,7 +84,7 @@ def create_graph(dataframe, state):
     dead_y = dataframe['Deaths']
     plt.plot(dead_y, color='#c70d00', label='Deaths')
 
-    plt.xlabel('Period', labelpad=10)
+    plt.xlabel('Time Period', labelpad=10)
     plt.ylabel('Number of Cases', labelpad=10)
 
     if state == "District of Columbia":
