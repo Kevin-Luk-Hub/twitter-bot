@@ -121,9 +121,9 @@ def getCountryData(country):
 
     df = df.set_index('Combined_Key')
 
-    confirmed = df.loc[country, 'Confirmed']
-    deaths = df.loc[country, 'Deaths']
-    recovered = df.loc[country, 'Recovered']
+    confirmed = "{:,}".format(df.loc[country, 'Confirmed'])
+    deaths = "{:,}".format(df.loc[country, 'Deaths'])
+    recovered = "{:,}".format(df.loc[country, 'Recovered'])
 
     return confirmed, deaths, recovered
 
