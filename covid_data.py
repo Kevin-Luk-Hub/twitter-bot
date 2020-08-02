@@ -107,6 +107,27 @@ def getCityData(city):
     return confirmed_cases, death_cases
 
 
+def getCountryData(country):
+    try:
+        curr_date = date.today().strftime('%m-%d-%Y')
+        df = pd.read_csv(
+            'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv'.format(curr_date))
+    except:
+        curr_date = date.today() - timedelta(days=1)
+        curr_date = curr_date.strftime(
+            '%m-%d-%Y')
+        df = pd.read_csv(
+            'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv'.format(curr_date))
+
+    df = df.set_index('Combined_Key')
+
+    confirmed = df.loc[country, 'Confirmed']
+    deaths = df.loc[country, 'Deaths']
+    recovered = df.loc[country, 'Recovered']
+
+    return confirmed, deaths, recovered
+
+
 def create_graph(dataframe, state):
     confirmed_y = dataframe['Confirmed']
     plt.style.use('bmh')
@@ -171,5 +192,14 @@ def create_city_tweet(city):
 
     tweet = 'Reports say that {} has had {} confirmed cases of COVID-19 and {} deaths caused by the virus.'.format(
         city, confirmed_cases, death_cases)
+
+    return tweet
+
+
+def create_country_tweet(country):
+    confirmed, deaths, recovered = getCountryData(country)
+
+    tweet = 'Reports say that {} has had {} confirmed cases of COVID-19 and {} deaths caused by the virus. Additionally, {} people have recovered from the virus.'.format(
+        country, confirmed, deaths, recovered)
 
     return tweet

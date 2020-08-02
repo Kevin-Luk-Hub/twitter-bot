@@ -1,7 +1,7 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, CITY_STATE, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
-from covid_data import getCovidData, create_graph, create_state_tweet, getUSData, getCityData, create_city_tweet
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, CITY_STATE, PROVINCE_COUNTRY, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
+from covid_data import getCovidData, create_graph, create_state_tweet, getUSData, getCityData, create_city_tweet, getCountryData, create_country_tweet
 from logger import *
 import schedule
 import time
@@ -73,6 +73,10 @@ def analyzeTweet(tweet_text, tweet_author, tweet_id):
         for state in STATE_ABBREV:
             if state in tweet_text:
                 stateTweet(STATE_NAME_ABBREV.get(state), tweet_id)
+    elif any(word in tweet_text for word in KEY_WORDS and PROVINCE_COUNTRY):
+        for country in PROVINCE_COUNTRY:
+            if country in tweet_text:
+                countryTweet(country.title(), tweet_id)
     else:
         genericTweet(tweet_text, tweet_author, tweet_id)
 
@@ -90,6 +94,13 @@ def stateTweet(state, tweet_id):
 def cityTweet(city, tweet_id):
     api, auth = TwitterAuthentication().authenticate_user()
     tweet = create_city_tweet(city)
+
+    postTweet(tweet, tweet_id)
+
+
+def countryTweet(country, tweet_id):
+    api, auth = TwitterAuthentication().authenticate_user()
+    tweet = create_country_tweet(country)
 
     postTweet(tweet, tweet_id)
 
