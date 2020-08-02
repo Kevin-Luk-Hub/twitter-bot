@@ -1,6 +1,6 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, CITY_COUNTRY, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, CITY_STATE, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
 from covid_data import getCovidData, create_graph, create_state_tweet, getUSData, getCityData, create_city_tweet
 from logger import *
 import schedule
@@ -61,8 +61,8 @@ def analyzeTweet(tweet_text, tweet_author, tweet_id):
     new_string = ' '.join(tweet_lower)
 
     if any(word in new_string for word in KEY_WORDS and STATE_NAME_LOWER):
-        if any(word in tweet_text for word in CITY_COUNTRY):
-            for city in CITY_COUNTRY:
+        if any(word in tweet_text for word in CITY_STATE):
+            for city in CITY_STATE:
                 if city in tweet_text:
                     cityTweet(city.title(), tweet_id)
         else:

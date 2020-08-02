@@ -64,7 +64,7 @@ STATE_NAME_ABBREV = {
     "WY": "Wyoming"
 }
 
-CITY_COUNTRY = ["Autauga, Alabama",
+CITY_STATE = ["Autauga, Alabama",
                 "Baldwin, Alabama",
                 "Barbour, Alabama",
                 "Bibb, Alabama",
