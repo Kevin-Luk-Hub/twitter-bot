@@ -71,6 +71,42 @@ def getUSData():
     return tweet
 
 
+def getCityData(city):
+    df_confirmed = pd.read_csv(
+        'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
+
+    df_deaths = df2 = pd.read_csv(
+        'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv')
+
+    df_confirmed['Combined_Key'] = df_confirmed['Combined_Key'].apply(
+        lambda key: key[:-4])
+    df_confirmed = df_confirmed.set_index("Combined_Key")
+
+    try:
+        curr_date = date.today().strftime('%m/%d/%y').lstrip("0").replace(" 0", " ")
+        confirmed_cases = "{:,}".format(df_confirmed.loc[city, curr_date])
+    except:
+        curr_date = date.today() - timedelta(days=1)
+        curr_date = curr_date.strftime(
+            '%m/%d/%y').lstrip("0").replace(" 0", " ")
+        confirmed_cases = "{:,}".format(df_confirmed.loc[city, curr_date])
+
+    df_deaths['Combined_Key'] = df_deaths['Combined_Key'].apply(
+        lambda key: key[:-4])
+    df_deaths = df_deaths.set_index("Combined_Key")
+
+    try:
+        curr_date = date.today().strftime('%m/%d/%y').lstrip("0").replace(" 0", " ")
+        death_cases = "{:,}".format(df_deaths.loc[city, curr_date])
+    except:
+        curr_date = date.today() - timedelta(days=1)
+        curr_date = curr_date.strftime(
+            '%m/%d/%y').lstrip("0").replace(" 0", " ")
+        death_cases = "{:,}".format(df_deaths.loc[city, curr_date])
+
+    return confirmed_cases, death_cases
+
+
 def create_graph(dataframe, state):
     confirmed_y = dataframe['Confirmed']
     plt.style.use('bmh')
@@ -107,7 +143,7 @@ def create_graph(dataframe, state):
     logging.info('Created graph for {}'.format(state))
 
 
-def create_tweet(dataframe, state):
+def create_state_tweet(dataframe, state):
     confirmed = "{:,}".format(dataframe.iloc[-1]['Confirmed'])
     deaths = "{:,}".format(dataframe.iloc[-1]['Deaths'])
 
@@ -126,5 +162,14 @@ def create_tweet(dataframe, state):
             state, confirmed, deaths, recovered_tweet)
 
     logging.info('Created tweet for {}'.format(state))
+
+    return tweet
+
+
+def create_city_tweet(city):
+    confirmed_cases, death_cases = getCityData(city)
+
+    tweet = 'Reports say that {} has had {} confirmed cases of COVID-19 and {} deaths caused by the virus.'.format(
+        city, confirmed_cases, death_cases)
 
     return tweet

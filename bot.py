@@ -1,7 +1,7 @@
 import tweepy
 from credentials import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, ACCOUNT_NAME, ACCOUNT_ID
-from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
-from covid_data import getCovidData, create_graph, create_tweet, getUSData
+from utils import STATE_NAME, STATE_NAME_LOWER, STATE_ABBREV, STATE_NAME_ABBREV, CITY_COUNTRY, KEY_WORDS, CNN, CNN_ID, CDC, CDC_ID, WHO, WHO_ID, WASHINGTON_POST, WASHINGTON_POST_ID, WALL_STREET_JOURNAL, WALL_STREET_JOURNAL_ID, NEW_YORK_TIMES, NEW_YORK_TIMES_ID
+from covid_data import getCovidData, create_graph, create_state_tweet, getUSData, getCityData, create_city_tweet
 from logger import *
 import schedule
 import time
@@ -61,9 +61,14 @@ def analyzeTweet(tweet_text, tweet_author, tweet_id):
     new_string = ' '.join(tweet_lower)
 
     if any(word in new_string for word in KEY_WORDS and STATE_NAME_LOWER):
-        for state in STATE_NAME_LOWER:
-            if state in new_string:
-                stateTweet(state.title(), tweet_id)
+        if any(word in tweet_text for word in CITY_COUNTRY):
+            for city in CITY_COUNTRY:
+                if city in tweet_text:
+                    cityTweet(city.title(), tweet_id)
+        else:
+            for state in STATE_NAME_LOWER:
+                if state in new_string:
+                    stateTweet(state.title(), tweet_id)
     elif any(word in tweet_text for word in KEY_WORDS and STATE_ABBREV):
         for state in STATE_ABBREV:
             if state in tweet_text:
@@ -76,10 +81,17 @@ def stateTweet(state, tweet_id):
     api, auth = TwitterAuthentication().authenticate_user()
     df = getCovidData(state)
     create_graph(df, state)
-    tweet = create_tweet(df, state)
+    tweet = create_state_tweet(df, state)
     img_id = media_id(state)
 
     postTweetwithMedia(tweet, tweet_id, img_id)
+
+
+def cityTweet(city, tweet_id):
+    api, auth = TwitterAuthentication().authenticate_user()
+    tweet = create_city_tweet(city)
+
+    postTweet(tweet, tweet_id)
 
 
 def media_id(state):
