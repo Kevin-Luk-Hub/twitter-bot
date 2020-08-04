@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def get_previous_dates():
+def getPreviousDates():
     start_date = date.today() - timedelta(days=1)
     end_date = date(2020, 4, 13)
     delta = start_date - end_date
@@ -21,9 +21,9 @@ def get_previous_dates():
     return dates
 
 
-def getCovidData(state):
+def getStateData(state):
     raw_files = []
-    dates = get_previous_dates()
+    dates = getPreviousDates()
 
     logging.info('Retrieving data from GitHub for the state of {}'.format(
         state.capitalize()))
@@ -128,7 +128,7 @@ def getCountryData(country):
     return confirmed, deaths, recovered
 
 
-def create_graph(dataframe, state):
+def createGraph(dataframe, state):
     confirmed_y = dataframe['Confirmed']
     plt.style.use('bmh')
 
@@ -164,7 +164,7 @@ def create_graph(dataframe, state):
     logging.info('Created graph for {}'.format(state))
 
 
-def create_state_tweet(dataframe, state):
+def createStateTweet(dataframe, state):
     confirmed = "{:,}".format(dataframe.iloc[-1]['Confirmed'])
     deaths = "{:,}".format(dataframe.iloc[-1]['Deaths'])
 
@@ -187,7 +187,7 @@ def create_state_tweet(dataframe, state):
     return tweet
 
 
-def create_city_tweet(city):
+def createCityTweet(city):
     confirmed_cases, death_cases = getCityData(city)
 
     tweet = 'Reports say that {} has had {} confirmed cases of COVID-19 and {} deaths caused by the virus.'.format(
@@ -196,7 +196,7 @@ def create_city_tweet(city):
     return tweet
 
 
-def create_country_tweet(country):
+def createCountryTweet(country):
     confirmed, deaths, recovered = getCountryData(country)
 
     tweet = 'Reports say that {} has had {} confirmed cases of COVID-19 and {} deaths caused by the virus. Additionally, {} people have recovered from the virus.'.format(
