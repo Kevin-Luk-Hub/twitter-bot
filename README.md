@@ -1,4 +1,4 @@
-# Twitter-bot
+# COVID-19 Twitter Bot
 
 Twitter bot that will tweet covid data.
 
